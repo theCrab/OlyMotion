@@ -2,70 +2,60 @@ class PanelView < UIView
   include DebugConcern
 
   COMPONENTS = [
-    { # A 0 / 0
+    {
       uiType: :button,
       title: '☓',
       action: :closePhotoView,
       outlet: :closePhotoViewButton
     },
-    { # B 0 / 1
+    {
       uiType: :label,
       text: 'alert',
       outlet: :alertLabel
     },
-    { # C 1 / 0
+    {
       uiType: :button,
       title: "WB\nAuto",
       action: :toggleWhiteBalance,
       outlet: :toggleWhiteBalanceButton
     },
-    { # D 1 / 1
+    {
       uiType: :button,
       title: 'P',
       action: :toggleTakeMode,
       outlet: :toggleTakeModeButton
     },
-    { # E 2 / 0
+    {
       uiType: :label,
       text: "SHTR\nN/A",
       outlet: :shutterSpeedLabel
     },
-    { # F 2 / 1
+    {
       uiType: :label,
       text: "ISO\nN/A",
       outlet: :isoSensitivityLabel
     },
-    { # G 3 / 0
+    {
+      uiType: :label,
+      text: "APTR\nN/A",
+      outlet: :apertureValueLabel
+    },
+    {
+      uiType: :label,
+      text: "XPSR\nN/A",
+      outlet: :exposureCompensationLabel
+    },
+    {
       uiType: :button,
       title: 'S-AF',
       action: :toggleFocusMode,
       outlet: :toggleFocusModeButton
     },
-    { # H 3 / 1
+    {
       uiType: :button,
       title: "AE\nUnlock",
       action: :toggleAeLockState,
       outlet: :toggleAeLockStateButton
-    },
-    { # I
-      uiType: :label,
-      text: '25mm',
-      outlet: :focusLengthLabel
-    },
-    { # J
-      uiType: :label,
-      text: '300mm',
-      outlet: :focusLengthLabel2
-    },
-    { # K
-      uiType: :label,
-      text: "APTR\nN/A",
-      outlet: :apertureValueLabel
-    },
-    { # L
-      uiType: :label,
-      text: "XPSR\nN/A",
-      outlet: :exposureCompensationLabel
     }
   ]
 
@@ -104,7 +94,7 @@ class PanelView < UIView
 
     panelWidth = Device.screen.width - Device.screen.height * 1.5
     componentWidth = (panelWidth - 2 - 2 - 2) / 2
-    6.times do |index|
+    5.times do |index|
       @containers[index] << @components[index][0]
       @containers[index] << @components[index][1]
       Motion::Layout.new do |layout|
@@ -116,6 +106,27 @@ class PanelView < UIView
       end
       self << @containers[index]
     end
+
+    @outlets[:focusLengthSlider] = UISlider.new.tap do |s|
+      s.continuous = false
+    end
+    initFocusLengthSlider
+    @outlets[:focusLengthLabel] = UILabel.new.tap do |l|
+      l.font = UIFont.systemFontOfSize(10)
+      l.text = 'N/A'
+      l.textAlignment = NSTextAlignmentCenter
+      l.textColor = UIColor.whiteColor
+    end
+    @containers[5] << @outlets[:focusLengthSlider]
+    @containers[5] << @outlets[:focusLengthLabel]
+    Motion::Layout.new do |layout|
+      layout.view @containers[5]
+      layout.subviews slider: @outlets[:focusLengthSlider], label: @outlets[:focusLengthLabel]
+      layout.vertical "|[slider][label]|"
+      layout.horizontal "|[slider]|"
+      layout.horizontal "|[label]|"
+    end
+    self << @containers[5]
 
     @releaseButton = UIButton.buttonWithType(UIButtonTypeSystem)
     @releaseButton.setTitle("写", forState:UIControlStateNormal)
@@ -132,10 +143,35 @@ class PanelView < UIView
       layout.horizontal "|[releaseButton]|"
       layout.horizontal "|[gh]|"
       layout.horizontal "|[ij]|"
-      layout.horizontal "|[kl]|"
+      layout.horizontal "|-2-[kl]-10-|"
     end
 
     self
+  end
+
+  def initFocusLengthSlider
+    # @FIXME まだハードコーディング
+    @focusLengthSliderValue = {}
+    @focusLengthSliderValue[:s] = 12
+    @focusLengthSliderValue[:m] = 25
+    @focusLengthSliderValue[:l] = 42
+    @focusLengthSliderValue[:threshold_s] = @focusLengthSliderValue[:s] + (@focusLengthSliderValue[:m] - @focusLengthSliderValue[:s]) / 3
+    @focusLengthSliderValue[:threshold_l] = @focusLengthSliderValue[:l] - (@focusLengthSliderValue[:l] - @focusLengthSliderValue[:m]) / 3
+    @outlets[:focusLengthSlider].minimumValue = @focusLengthSliderValue[:s]
+    @outlets[:focusLengthSlider].maximumValue = @focusLengthSliderValue[:l]
+    @outlets[:focusLengthSlider].addTarget(self, action:'sliderUpdate:', forControlEvents:UIControlEventValueChanged)
+  end
+
+  def sliderUpdate(slider)
+    slider.value = case slider.value
+    when (@focusLengthSliderValue[:s]..@focusLengthSliderValue[:threshold_s])
+      @focusLengthSliderValue[:s]
+    when (@focusLengthSliderValue[:threshold_l]..@focusLengthSliderValue[:l])
+      @focusLengthSliderValue[:l]
+    else
+      @focusLengthSliderValue[:m]
+    end
+    @outlets[:focusLengthLabel].text = "#{slider.value}mm"
   end
 
   def releaseShutter
