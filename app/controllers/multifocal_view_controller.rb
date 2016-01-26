@@ -23,7 +23,6 @@ class MultifocalViewController < UIViewController
     @textFieid = UITextField.new.tap do |t|
       t.keyboardType = UIKeyboardTypeNumberPad
       t.frame = CGRectMake(200, Device.screen.height / 2 - 50, Device.screen.width - 400, 40)
-      # t.clearButtonMode = UITextFieldViewModeWhiteEditing
       t.borderStyle = UITextBorderStyleRoundedRect
       t.font = UIFont.systemFontOfSize(24)
       t.textColor = UIColor.blackColor
