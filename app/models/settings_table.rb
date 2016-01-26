@@ -52,6 +52,11 @@ class SettingsTable
             detail: AppCamera::MAGNIFYING_LIVE_VIEW_SCALES[@setting['magnifingLiveViewScale']],
             accessory_type: UITableViewCellAccessoryDisclosureIndicator,
             outlet: :@showMagnifySettingCell
+          },
+          { label: 'Middle Value of Multifocal',
+            detail: showMultifocalSettingCellValue,
+            accessory_type: UITableViewCellAccessoryDisclosureIndicator,
+            outlet: :@showMultifocalSettingCell
           }
         ]
       }
@@ -132,6 +137,20 @@ class SettingsTable
 
   def updateShowMagnifySettingCell
     @showMagnifySettingCell.detailTextLabel.text = AppCamera::MAGNIFYING_LIVE_VIEW_SCALES[@setting['magnifingLiveViewScale']] if @showMagnifySettingCell
+  end
+
+  def updateShowMultifocalSettingCell
+    if @showMultifocalSettingCell
+      @showMultifocalSettingCell.detailTextLabel.text = showMultifocalSettingCellValue
+    end
+  end
+
+  def showMultifocalSettingCellValue
+    if @setting['multifocal']
+      @setting['multifocalMiddleValue'] ? @setting['multifocalMiddleValue'].to_s : 'auto'
+    else
+      'off'
+    end
   end
 
   # アプリ接続の状態を画面に表示します。

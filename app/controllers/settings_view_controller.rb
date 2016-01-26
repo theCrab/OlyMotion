@@ -46,6 +46,13 @@ class SettingsViewController < UIViewController
     notificationCenter.addObserver(self, selector:'didChangeBluetoothConnection:', name:BluetoothConnector::BluetoothConnectionChangedNotification, object:nil)
   end
 
+  def viewWillAppear(animated)
+    super
+    navigationController.setToolbarHidden(true, animated:animated)
+    updateSettingsTable(nil)
+  end
+
+
   def viewDidAppear(animated)
     super(animated)
 
@@ -141,7 +148,7 @@ class SettingsViewController < UIViewController
       @settingsTable.updateShowBluetoothSettingCell
       @settingsTable.updateCameraConnectionCells(@wifiConnector, @bluetoothConnector)
       @settingsTable.updateShowMagnifySettingCell
-      # @settingsTable.updateCameraOperationCells(@wifiConnector, @bluetoothConnector)
+      @settingsTable.updateShowMultifocalSettingCell
       refreshControl.try(:endRefreshing)
     }
   end
@@ -224,12 +231,6 @@ class SettingsViewController < UIViewController
     backToConnectionView(true)
   end
 
-  def viewWillAppear(animated)
-    super
-    navigationController.setToolbarHidden(true, animated:animated)
-    updateSettingsTable(nil)
-  end
-
   # テーブルの行がタップされた
   def tableView(tableView, didSelectRowAtIndexPath:indexPath)
     tableView.deselectRowAtIndexPath(indexPath, animated:false)
@@ -256,6 +257,10 @@ class SettingsViewController < UIViewController
       didSelectRowAtDisconnectAndSleepCell
     when :@showMagnifySettingCell
       MagnifyingLiveViewScaleViewController.new.tap do |controller|
+        self.navigationController.pushViewController(controller, animated:true)
+      end
+    when :@showMultifocalSettingCell
+      MultifocalViewController.new.tap do |controller|
         self.navigationController.pushViewController(controller, animated:true)
       end
     end

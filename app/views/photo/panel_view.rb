@@ -62,6 +62,7 @@ class PanelView < UIView
   def initWithFrame(frame)
     super(frame)
     @camera = AppCamera.instance
+    @setting = AppSetting.instance
     @outlets = {}
     self.backgroundColor = UIColor.darkGrayColor
     @containers = []
@@ -107,21 +108,21 @@ class PanelView < UIView
       self << @containers[index]
     end
 
-    @outlets[:focusLengthSlider] = UISlider.new.tap do |s|
+    @outlets[:focalLengthSlider] = UISlider.new.tap do |s|
       s.continuous = false
     end
-    initFocusLengthSlider
-    @outlets[:focusLengthLabel] = UILabel.new.tap do |l|
+    initFocalLengthSlider
+    @outlets[:focalLengthLabel] = UILabel.new.tap do |l|
       l.font = UIFont.systemFontOfSize(10)
       l.text = 'N/A'
       l.textAlignment = NSTextAlignmentCenter
       l.textColor = UIColor.whiteColor
     end
-    @containers[5] << @outlets[:focusLengthSlider]
-    @containers[5] << @outlets[:focusLengthLabel]
+    @containers[5] << @outlets[:focalLengthSlider]
+    @containers[5] << @outlets[:focalLengthLabel]
     Motion::Layout.new do |layout|
       layout.view @containers[5]
-      layout.subviews slider: @outlets[:focusLengthSlider], label: @outlets[:focusLengthLabel]
+      layout.subviews slider: @outlets[:focalLengthSlider], label: @outlets[:focalLengthLabel]
       layout.vertical "|[slider][label]|"
       layout.horizontal "|[slider]|"
       layout.horizontal "|[label]|"
@@ -149,29 +150,44 @@ class PanelView < UIView
     self
   end
 
-  def initFocusLengthSlider
+  def initFocalLengthSlider
     # @FIXME まだハードコーディング
-    @focusLengthSliderValue = {}
-    @focusLengthSliderValue[:s] = 12
-    @focusLengthSliderValue[:m] = 25
-    @focusLengthSliderValue[:l] = 42
-    @focusLengthSliderValue[:threshold_s] = @focusLengthSliderValue[:s] + (@focusLengthSliderValue[:m] - @focusLengthSliderValue[:s]) / 3
-    @focusLengthSliderValue[:threshold_l] = @focusLengthSliderValue[:l] - (@focusLengthSliderValue[:l] - @focusLengthSliderValue[:m]) / 3
-    @outlets[:focusLengthSlider].minimumValue = @focusLengthSliderValue[:s]
-    @outlets[:focusLengthSlider].maximumValue = @focusLengthSliderValue[:l]
-    @outlets[:focusLengthSlider].addTarget(self, action:'sliderUpdate:', forControlEvents:UIControlEventValueChanged)
+    @focalLengthSliderValue = {}
+    @focalLengthSliderValue[:s] = 12
+    @focalLengthSliderValue[:l] = 42
+    @focalLengthSliderValue[:m] = if (@focalLengthSliderValue[:s]..@focalLengthSliderValue[:l]).include?(@setting['multifocalMiddleValue'])
+      @setting['multifocalMiddleValue']
+    else
+      (@focalLengthSliderValue[:s] + @focalLengthSliderValue[:l]) / 2
+    end
+    @focalLengthSliderValue[:threshold_s] = @focalLengthSliderValue[:s] + (@focalLengthSliderValue[:m] - @focalLengthSliderValue[:s]) / 3
+    @focalLengthSliderValue[:threshold_l] = @focalLengthSliderValue[:l] - (@focalLengthSliderValue[:l] - @focalLengthSliderValue[:m]) / 3
+    @outlets[:focalLengthSlider].minimumValue = @focalLengthSliderValue[:s]
+    @outlets[:focalLengthSlider].maximumValue = @focalLengthSliderValue[:l]
+    @outlets[:focalLengthSlider].addTarget(self, action:'sliderUpdate:', forControlEvents:UIControlEventValueChanged)
+    if @setting['multifocal']
+      @outlets[:focalLengthSlider].setMinimumTrackTintColor(UIColor.orangeColor)
+      @outlets[:focalLengthSlider].setMaximumTrackTintColor(UIColor.orangeColor)
+    else
+      @outlets[:focalLengthSlider].setMinimumTrackTintColor(UIColor.greenColor)
+      @outlets[:focalLengthSlider].setMaximumTrackTintColor(UIColor.greenColor)
+    end
   end
 
   def sliderUpdate(slider)
-    slider.value = case slider.value
-    when (@focusLengthSliderValue[:s]..@focusLengthSliderValue[:threshold_s])
-      @focusLengthSliderValue[:s]
-    when (@focusLengthSliderValue[:threshold_l]..@focusLengthSliderValue[:l])
-      @focusLengthSliderValue[:l]
+    slider.value = if @setting['multifocal']
+      case slider.value
+      when (@focalLengthSliderValue[:s]..@focalLengthSliderValue[:threshold_s])
+        @focalLengthSliderValue[:s]
+      when (@focalLengthSliderValue[:threshold_l]..@focalLengthSliderValue[:l])
+        @focalLengthSliderValue[:l]
+      else
+        @focalLengthSliderValue[:m]
+      end
     else
-      @focusLengthSliderValue[:m]
+      slider.value.round
     end
-    @outlets[:focusLengthLabel].text = "#{slider.value}mm"
+    @outlets[:focalLengthLabel].text = "#{slider.value}mm"
   end
 
   def releaseShutter
