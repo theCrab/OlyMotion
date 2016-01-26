@@ -148,7 +148,7 @@ class SettingsViewController < UIViewController
       @settingsTable.updateShowBluetoothSettingCell
       @settingsTable.updateCameraConnectionCells(@wifiConnector, @bluetoothConnector)
       @settingsTable.updateShowMagnifySettingCell
-      @settingsTable.updateShowMultifocalSettingCell
+      @settingsTable.updateShowTrifocalSettingCell
       refreshControl.try(:endRefreshing)
     }
   end
@@ -259,8 +259,8 @@ class SettingsViewController < UIViewController
       MagnifyingLiveViewScaleViewController.new.tap do |controller|
         self.navigationController.pushViewController(controller, animated:true)
       end
-    when :@showMultifocalSettingCell
-      MultifocalViewController.new.tap do |controller|
+    when :@showTrifocalSettingCell
+      TrifocalViewController.new.tap do |controller|
         self.navigationController.pushViewController(controller, animated:true)
       end
     end

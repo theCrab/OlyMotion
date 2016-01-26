@@ -1,4 +1,4 @@
-class MultifocalViewController < UIViewController
+class TrifocalViewController < UIViewController
 
   include DebugConcern
 
@@ -7,15 +7,15 @@ class MultifocalViewController < UIViewController
 
     @setting = AppSetting.instance
 
-    self.title = 'Multifocal'
-    self.view.backgroundColor = UIColor.blueColor
+    self.title = 'Trifocal'
+    self.view.backgroundColor = UIColor.orangeColor
 
     menu_button = BW::UIBarButtonItem.styled(:plain, 'Done') { close }
     self.navigationItem.RightBarButtonItem = menu_button
 
     @switch = UISwitch.new.tap do |s|
       s.center = CGPointMake(Device.screen.width / 2, Device.screen.height / 2 - 100)
-      s.on = @setting['multifocal']
+      s.on = @setting['trifocal']
       s.on :change { switchDidChange }
     end
     self.view << @switch
@@ -27,8 +27,8 @@ class MultifocalViewController < UIViewController
       t.font = UIFont.systemFontOfSize(24)
       t.textColor = UIColor.blackColor
       t.textAlignment = UITextAlignmentCenter
-      t.enabled = @setting['multifocal']
-      t.text = @setting['multifocalMiddleValue'].to_s
+      t.enabled = @setting['trifocal']
+      t.text = @setting['trifocalMiddleValue'].to_s
     end
     self.view << @textFieid
 
@@ -40,8 +40,8 @@ class MultifocalViewController < UIViewController
   end
 
   def save_defaults
-    @setting['multifocal'] = @switch.on?
-    @setting['multifocalMiddleValue'] = @textFieid.text.match(/\A\d+\z/) ? @textFieid.text.to_i : nil
+    @setting['trifocal'] = @switch.on?
+    @setting['trifocalMiddleValue'] = @textFieid.text.match(/\A\d+\z/) ? @textFieid.text.to_i : nil
   end
 
   def switchDidChange

@@ -78,17 +78,22 @@ class PhotoViewController < UIViewController
     camera.addObserver(self, forKeyPath:'actualShutterSpeed', options:0, context:nil)
     camera.addObserver(self, forKeyPath:'actualExposureCompensation', options:0, context:nil)
     camera.addObserver(self, forKeyPath:'actualIsoSensitivity', options:0, context:nil)
+# dp "★★★★★★#{camera.cameraPropertyValue('WB', error:nil)}"
   end
 
-  # def dealloc
-  #   camera = AppCamera.instance
-  #   camera.removeObserver(self, forKeyPath:'actualApertureValue')
-  #   camera.removeObserver(self, forKeyPath:'actualShutterSpeed')
-  #   camera.removeObserver(self, forKeyPath:'actualExposureCompensation')
-  #   camera.removeObserver(self, forKeyPath:'actualIsoSensitivity')
-  #   camera.removeCameraPropertyDelegate(self)
-  #   # @cameraPropertyObserver = nil
-  # end
+  def dealloc
+    camera = AppCamera.instance
+    camera.removeObserver(self, forKeyPath:'actualApertureValue')
+    camera.removeObserver(self, forKeyPath:'actualShutterSpeed')
+    camera.removeObserver(self, forKeyPath:'actualExposureCompensation')
+    camera.removeObserver(self, forKeyPath:'actualIsoSensitivity')
+    camera.removeCameraPropertyDelegate(self)
+    # @cameraPropertyObserver = nil
+    # なぜかWBの一括設定が効かない
+    unless camera.setCameraPropertyValue('WB', value:DEFAULT_PROPERTIES['WB'], error:error)
+      alertOnMainThreadWithMessage(error[0].localizedDescription, title:"FailedSetProperty WB")
+    end
+  end
 
   def close
     dp 'PhotoViewクローズ'
@@ -124,13 +129,6 @@ class PhotoViewController < UIViewController
 
   def viewDidLayoutSubviews
     super
-    # コントロールのレイアウトがStroyboardで設定した初期状態になっている場合は非表示にします。
-    # それ以外は、デバイスの縦置きや横置きに合うようにパネルの表示サイズを再配置します。
-    # if (self.controlPanelVisibleStatus == ControlPanelVisibleStatusUnknown) {
-    #   [self showPanel:ControlPanelVisibleStatusHidden animated:NO];
-    # } else {
-    #   [self showPanel:self.controlPanelVisibleStatus animated:NO];
-    # }
   end
 
   def willTransitionToTraitCollection(collection, withTransitionCoordinator:coordinator)
@@ -268,7 +266,9 @@ class PhotoViewController < UIViewController
         weakSelf.alertOnMainThreadWithMessage(error.localizedDescription, title:"CouldNotStartRecordingMode")
         return
       end
-      dp "Why the live view is already started?" if !camera.autoStartLiveView && camera.liveViewEnabled
+      # なぜかWBの一括設定が効かないのでここでやる
+      camera.setCameraPropertyValue('WB', value:AppCamera::DEFAULT_PROPERTIES['WB'], error:nil)
+      dp "発生しないはずのことが発生している？" if !camera.autoStartLiveView && camera.liveViewEnabled
 
       # # 最新スナップショットからカメラ設定を復元します。
       # setting = AppSetting.instance
@@ -349,14 +349,6 @@ class PhotoViewController < UIViewController
     dp "すでに活動停止している場合は何もしません。"
     return unless @startingActivity
 
-    dp "パネル表示を終了します。"
-    # [self.embeddedSPanelViewController didFinishActivity];
-    # [self.embeddedEPanelViewController didFinishActivity];
-    # [self.embeddedCPanelViewController didFinishActivity];
-    # [self.embeddedAPanelViewController didFinishActivity];
-    # [self.embeddedZPanelViewController didFinishActivity];
-    # [self.embeddedVPanelViewController didFinishActivity];
-
     dp "撮影モードを終了します。"
     # MARK: weakなselfを使うとshowProgress:whileExecutingBlock:のブロックに到達する前に解放されてしまいます。
     weakSelf = WeakRef.new(self)
@@ -431,8 +423,6 @@ class PhotoViewController < UIViewController
     else
       @liveImageView.image = image
     end
-    # dp "ライブビューの回転方向をライブビュー拡大表示の全体図に反映します。"
-    # self.liveImageOverallView.orientation = @liveImageView.image.imageOrientation
   end
 
 
@@ -488,6 +478,7 @@ class PhotoViewController < UIViewController
     camera = AppCamera.instance
     error = Pointer.new(:object)
     toggler = TOGGLERS[key]
+    # dp "★#{camera.cameraPropertyValue(toggler[:propertyName], error:nil)}"
     index = case camera.cameraPropertyValue(toggler[:propertyName], error:nil)
     when toggler[:values][1]
       0

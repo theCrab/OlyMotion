@@ -158,8 +158,8 @@ class PanelView < UIView
       @outlets[:focalLengthSlider].enabled = false
     else
       @outlets[:focalLengthSlider].enabled = true
-      @focalLengthSliderValue[:m] = if (@focalLengthSliderValue[:s]..@focalLengthSliderValue[:l]).include?(@setting['multifocalMiddleValue'])
-        @setting['multifocalMiddleValue']
+      @focalLengthSliderValue[:m] = if (@focalLengthSliderValue[:s]..@focalLengthSliderValue[:l]).include?(@setting['trifocalMiddleValue'])
+        @setting['trifocalMiddleValue']
       else
         (@focalLengthSliderValue[:s] + @focalLengthSliderValue[:l]) / 2
       end
@@ -168,7 +168,7 @@ class PanelView < UIView
       @outlets[:focalLengthSlider].minimumValue = @focalLengthSliderValue[:s]
       @outlets[:focalLengthSlider].maximumValue = @focalLengthSliderValue[:l]
       @outlets[:focalLengthSlider].addTarget(self, action:'sliderUpdate:', forControlEvents:UIControlEventValueChanged)
-      if @setting['multifocal']
+      if @setting['trifocal']
         @outlets[:focalLengthSlider].setMinimumTrackTintColor(UIColor.orangeColor)
         @outlets[:focalLengthSlider].setMaximumTrackTintColor(UIColor.orangeColor)
       else
@@ -181,7 +181,7 @@ class PanelView < UIView
   end
 
   def sliderUpdate(slider)
-    slider.value = if @setting['multifocal']
+    slider.value = if @setting['trifocal']
       case slider.value
       when (@focalLengthSliderValue[:s]..@focalLengthSliderValue[:threshold_s])
         @focalLengthSliderValue[:s]

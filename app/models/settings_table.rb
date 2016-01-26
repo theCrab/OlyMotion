@@ -53,10 +53,10 @@ class SettingsTable
             accessory_type: UITableViewCellAccessoryDisclosureIndicator,
             outlet: :@showMagnifySettingCell
           },
-          { label: 'Middle Value of Multifocal',
-            detail: showMultifocalSettingCellValue,
+          { label: 'Middle Value of Trifocal',
+            detail: showTrifocalSettingCellValue,
             accessory_type: UITableViewCellAccessoryDisclosureIndicator,
-            outlet: :@showMultifocalSettingCell
+            outlet: :@showTrifocalSettingCell
           }
         ]
       }
@@ -139,15 +139,15 @@ class SettingsTable
     @showMagnifySettingCell.detailTextLabel.text = AppCamera::MAGNIFYING_LIVE_VIEW_SCALES[@setting['magnifingLiveViewScale']] if @showMagnifySettingCell
   end
 
-  def updateShowMultifocalSettingCell
-    if @showMultifocalSettingCell
-      @showMultifocalSettingCell.detailTextLabel.text = showMultifocalSettingCellValue
+  def updateShowTrifocalSettingCell
+    if @showTrifocalSettingCell
+      @showTrifocalSettingCell.detailTextLabel.text = showTrifocalSettingCellValue
     end
   end
 
-  def showMultifocalSettingCellValue
-    if @setting['multifocal']
-      @setting['multifocalMiddleValue'] ? @setting['multifocalMiddleValue'].to_s : 'auto'
+  def showTrifocalSettingCellValue
+    if @setting['trifocal']
+      @setting['trifocalMiddleValue'] ? @setting['trifocalMiddleValue'].to_s : 'auto'
     else
       'off'
     end

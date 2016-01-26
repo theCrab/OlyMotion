@@ -11,7 +11,6 @@ class SettingTableViewBaseController < UIViewController
     @bluetoothPasscode = nil
 
     self.title = @title
-    self.view.backgroundColor = UIColor.blueColor
 
     menu_button = BW::UIBarButtonItem.styled(:plain, 'Done') { close }
     self.navigationItem.RightBarButtonItem = menu_button;
